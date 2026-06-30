@@ -28,14 +28,7 @@ app.include_router(threat_memory.router)
 app.include_router(reports.router)
 app.include_router(lix.router)
 
-@app.get("/")
-def root():
-    return {
-        "brand": "Lilexs",
-        "product": "LN1",
-        "assistant": "Lix",
-        "status": "online"
-    }
+
 
 
 @app.get("/health")
