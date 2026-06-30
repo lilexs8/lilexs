@@ -3,7 +3,8 @@ WORKDIR /frontend
 COPY frontend/package.json ./
 RUN npm install
 COPY frontend/ ./
-RUN npm run build
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build 2>&1
 
 FROM python:3.11-slim
 WORKDIR /app
