@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16
+    container_name: ln1_postgres_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ln1
+      POSTGRES_USER: ln1
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ln1password}
+    volumes:
+      - ln1_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend.Dockerfile
+    container_name: ln1_backend_prod
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://ln1:${POSTGRES_PASSWORD:-ln1password}@db:5432/ln1
+      JWT_SECRET: ${JWT_SECRET:-change_this_secret}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend.Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    container_name: ln1_frontend_prod
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  ln1_postgres_data:
