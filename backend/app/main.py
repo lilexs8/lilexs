@@ -1,16 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 from app.db.session import Base, engine
 from app.models import core
 from app.api.routes import mission_control, assets, findings, attack_paths, threat_memory, reports, lix
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="LN1 Production V1 API",
-    description="AI-Powered Security Intelligence Platform",
-    version="1.0.0"
-)
+app = FastAPI(title="LN1 API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,21 +19,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(mission_control.router)
-app.include_router(assets.router)
-app.include_router(findings.router)
-app.include_router(attack_paths.router)
-app.include_router(threat_memory.router)
-app.include_router(reports.router)
-app.include_router(lix.router)
+api = APIRouter(prefix="/api")
+api.include_router(mission_control.router)
+api.include_router(assets.router)
+api.include_router(findings.router)
+api.include_router(attack_paths.router)
+api.include_router(threat_memory.router)
+api.include_router(reports.router)
+api.include_router(lix.router)
 
-
-
+app.include_router(api)
 
 @app.get("/health")
-def health_check():
-    return {
-        "status": "healthy",
-        "product": "LN1",
-        "assistant": "Lix"
-    }
+def health():
+    return {"status": "healthy"}
+
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static")
+if os.path.isdir(STATIC_DIR):
+    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="frontend")
