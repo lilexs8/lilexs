@@ -7,8 +7,16 @@ from app.models import core
 from app.api.routes import mission_control, assets, findings, attack_paths, threat_memory, reports, lix
 
 Base.metadata.create_all(bind=engine)
+
 app = FastAPI(title="LN1 API", version="1.0.0", docs_url="/api/docs")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 api = APIRouter(prefix="/api")
 api.include_router(mission_control.router)
@@ -25,4 +33,4 @@ def health():
     return {"status": "healthy"}
 
 if os.path.isdir("/app/static"):
-    app.mount("/", StaticFiles(directory="/app/static", html=True), name="frontend"), html=True), name="frontend")
+    app.mount("/", StaticFiles(directory="/app/static", html=True), name="frontend")
