@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import os
 from app.db.session import Base, engine
 from app.models import core
@@ -8,7 +9,7 @@ from app.api.routes import mission_control, assets, findings, attack_paths, thre
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="LN1 API", version="1.0.0", docs_url="/api/docs")
+app = FastAPI(title="LN1 API", docs_url="/api/docs")
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,5 +33,18 @@ app.include_router(api)
 def health():
     return {"status": "healthy"}
 
-if os.path.isdir("/app/static"):
-    app.mount("/", StaticFiles(directory="/app/static", html=True), name="frontend")
+STATIC = "/app/static"
+
+@app.get("/")
+def root():
+    return FileResponse(f"{STATIC}/index.html")
+
+@app.get("/{full_path:path}")
+def spa(full_path: str):
+    file = f"{STATIC}/{full_path}"
+    if os.path.isfile(file):
+        return FileResponse(file)
+    index = f"{STATIC}/{full_path}/index.html"
+    if os.path.isfile(index):
+        return FileResponse(index)
+    return FileResponse(f"{STATIC}/index.html")
